@@ -90,6 +90,24 @@ Response:
 GET /api/v1/price-history?from_timestamp={from}&to_timestamp={to}
 ```
 
+Query Parameters:
+- `from_timestamp`: Start time in milliseconds (required)
+- `to_timestamp`: End time in milliseconds (required)
+
+
+1. 24-hour range:
+```http
+GET /api/v1/price-history?from_timestamp=1749752399&to_timestamp=1749838799
+```
+2. 5-day range:
+```http
+GET /api/v1/price-history?from_timestamp=1749397199&to_timestamp=1749838799
+```
+
+Note: Timestamps are in Unix timestamp format (seconds since epoch). The examples above use:
+- 24-hour range: June 12, 2025 6:19:59 PM to June 13, 2025 6:19:59 PM
+- 5-day range: June 8, 2025 6:19:59 PM to June 13, 2025 6:19:59 PM
+
 Response:
 
 ```json
@@ -195,7 +213,7 @@ The project includes PgAdmin for database management. Access it at:
 
 ## Caching Strategy
 
--   Current price is cached for 60 seconds (configurable via `CACHE_TTL`)
+-   Current price is cached for 300 seconds (configurable via `CACHE_TTL`, coingecko public api is 1 min cache)
 -   Cache invalidation on new price updates
 -   Redis as primary cache with fallback to database
 -   Cache keys include timestamps for versioning
