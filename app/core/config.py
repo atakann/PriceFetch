@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from pydantic import ConfigDict
 from functools import lru_cache
 
 
@@ -8,25 +9,23 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "PriceFetch"
 
     # Database
-    POSTGRES_SERVER: str
+    POSTGRES_SERVER: str = "localhost"
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
-    POSTGRES_PORT: str = "5434"  # Add this line to match .env
+    POSTGRES_PORT: str = "5434"
     DATABASE_URL: str | None = None
 
     # Redis
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
-    CACHE_TTL: int = 300  # 5 minutes in seconds
+    CACHE_TTL: int = 300  # 1 min in seconds
 
     # CoinGecko
     COINGECKO_API_KEY: str
     COINGECKO_BASE_URL: str = "https://api.coingecko.com/api/v3"
 
-    class Config:
-        case_sensitive = True
-        env_file = ".env"
+    model_config = ConfigDict(case_sensitive=True, env_file=".env")
 
     def construct_database_url(self) -> str:
         if self.DATABASE_URL:

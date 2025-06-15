@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import List, Dict, Any
 from app.db.repository import PriceRepository
 from app.services.coingecko_service import CoinGeckoService
@@ -13,6 +12,10 @@ class PriceService:
         self.cache = RedisCache()
         self.cache_key = "bitcoin_current_price"
 
+    def _normalize_timestamp(self, timestamp: int) -> int:
+        """Convert timestamp to milliseconds if needed"""
+        return timestamp * 1000 if len(str(timestamp)) == 10 else timestamp
+
     async def get_current_price(self) -> Dict[str, Any]:
         """Get current price from cache or API"""
         cached_data = await self.cache.get(self.cache_key)
@@ -22,25 +25,42 @@ class PriceService:
         data = await self.coingecko.get_current_price()
         price_data = data["bitcoin"]
 
-        stored_price = self.repository.create_current_price(
-            price=price_data["usd"], last_updated_at=price_data["last_updated_at="]
+        normalized_timestamp = self._normalize_timestamp(price_data["last_updated_at"])
+
+        stored_price = self.repository.create_price_point(
+            timestamp=normalized_timestamp, price=price_data["usd"]
         )
 
-        return {
+        response = {
             "price": stored_price.price,
-            "last_updated_at": stored_price.last_updated_at,
+            "timestamp": stored_price.timestamp,
         }
 
-    async def get_price_history(self, days: str = "1") -> List[Dict[str, Any]]:
-        """Get price history and store it"""
-        data = await self.coingecko.get_price_history(days)
+        await self.cache.set(self.cache_key, response)
+        return response
 
-        stored_prices = []
-        for timestamp, price in data["prices"]:
-            stored_price = self.repository.create_price_history(
-                timestamp=int(timestamp), price=price
-            )
-            stored_price.append(
-                {"timestamp": stored_price.timestamp, "price": stored_price.price}
-            )
-        return stored_price
+    async def get_price_history_range(
+        self, from_timestamp: int, to_timestamp: int
+    ) -> Dict[str, List[Dict[str, Any]]]:
+        """Get price history for specific range"""
+        cache_key = f"bitcoin_price_range_{from_timestamp}_{to_timestamp}"
+
+        cached_data = await self.cache.get(cache_key)
+        if cached_data:
+            return cached_data
+
+        data = await self.coingecko.get_price_history_range(
+            from_timestamp, to_timestamp
+        )
+
+        stored_prices = self.repository.create_price_points_batch(data["prices"])
+
+        response = {
+            "prices": [
+                {"timestamp": p.timestamp, "price": p.price} for p in stored_prices
+            ]
+        }
+
+        await self.cache.set(cache_key, response)
+
+        return response
