@@ -49,14 +49,25 @@ class CoinGeckoService:
         self, from_timestamp: int, to_timestamp: int
     ) -> Dict[str, Any]:
         """Fetch Bitcoin price history for specific range"""
-        return await self._make_request(
-            "GET",
-            f"{self.base_url}/coins/bitcoin/market_chart/range",
-            params={
-                "vs_currency": "usd",
-                "from": from_timestamp,
-                "to": to_timestamp,
-                "precision": "3",
-            },
-            headers=self.headers,
-        )
+        from_seconds = from_timestamp // 1000
+        to_seconds = to_timestamp // 1000
+
+        url = f"{self.base_url}/coins/bitcoin/market_chart/range"
+        params = {
+            "vs_currency": "usd",
+            "from": from_seconds,
+            "to": to_seconds,
+            "precision": "3",
+        }
+
+        try:
+            response = await self._make_request(
+                "GET",
+                url,
+                params=params,
+                headers=self.headers,
+            )
+            return response
+        except Exception as e:
+            print(f"Error in CoinGecko API call: {e}")
+            raise

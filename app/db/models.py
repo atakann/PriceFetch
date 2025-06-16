@@ -10,6 +10,6 @@ class CurrentPrice(Base):
     __tablename__ = "price_points"
 
     id = Column(Integer, primary_key=True, index=True)
-    timestamp = Column(BigInteger, nullable=False)
+    timestamp = Column(BigInteger, nullable=False, unique=True)
     price = Column(Float, nullable=False)
     created_at = Column(DateTime, nullable=False)

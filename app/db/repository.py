@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from datetime import datetime, timezone
 from typing import List, Tuple
 from . import models
@@ -24,14 +25,43 @@ class PriceRepository:
         self, price_points: List[Tuple[int, float]]
     ) -> List[models.CurrentPrice]:
         """Create multiple price points from range endpoint"""
+        if not price_points:
+            return []
+            
         now = datetime.now(timezone.utc)
-        db_prices = [
-            models.CurrentPrice(timestamp=timestamp, price=price, created_at=now)
-            for timestamp, price in price_points
-        ]
-        self.db.bulk_save_objects(db_prices)
-        self.db.commit()
-        return db_prices
+        
+        valid_points = []
+        for ts, price in price_points:
+            if ts is not None and price is not None:
+                try:
+                    valid_points.append({
+                        "timestamp": int(ts),
+                        "price": float(price),
+                        "created_at": now
+                    })
+                except (ValueError, TypeError):
+                    continue
+        
+        if not valid_points:
+            return []
+
+        try:
+            stmt = (
+                pg_insert(models.CurrentPrice)
+                .values(valid_points)
+                .on_conflict_do_nothing(index_elements=["timestamp"])
+            )
+
+            self.db.execute(stmt)
+            self.db.commit()
+        except Exception as e:
+            self.db.rollback()
+            return []
+
+        return self.get_price_range(
+            min(ts for ts, _ in price_points), 
+            max(ts for ts, _ in price_points)
+        )
 
     def get_price_range(
         self, from_timestamp: int, to_timestamp: int
@@ -40,6 +70,6 @@ class PriceRepository:
         return (
             self.db.query(models.CurrentPrice)
             .filter(models.CurrentPrice.timestamp.between(from_timestamp, to_timestamp))
-            .order_by(models.CurrentPrice.timestamp.asc())
+            .order_by(models.CurrentPrice.timestamp.desc())
             .all()
         )

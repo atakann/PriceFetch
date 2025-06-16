@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     # Redis
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
-    CACHE_TTL: int = 300  # 1 min in seconds
+    CACHE_TTL: int = 300  # 5 min in seconds
 
     # CoinGecko
     COINGECKO_API_KEY: str

@@ -13,7 +13,7 @@ router = APIRouter(prefix="/api/v1", tags=["prices"])
 
 
 @router.get("/current-price", response_model=CurrentPriceResponse)
-async def get_current_price(db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def get_current_price(db: Session = Depends(get_db)) -> CurrentPriceResponse:
     """Get current Bitcoin price"""
     try:
         price_service = PriceService(db)
@@ -27,7 +27,7 @@ async def get_current_price(db: Session = Depends(get_db)) -> Dict[str, Any]:
 @router.get("/price-history", response_model=PriceHistoryResponse)
 async def get_price_history_range(
     from_timestamp: int, to_timestamp: int, db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+) -> PriceHistoryResponse:
     """Get Bitcoin price history for specific range"""
     try:
         params = PriceHistoryRangeParams(
@@ -35,11 +35,9 @@ async def get_price_history_range(
         )
 
         price_service = PriceService(db)
-        result = await price_service.get_price_history_range(
+        return await price_service.get_price_history_range(
             params.from_timestamp, params.to_timestamp
         )
-
-        return result
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

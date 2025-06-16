@@ -1,8 +1,8 @@
-"""create_tables_for_range
+"""create_tables_with_unique_timestamp
 
-Revision ID: b300f37577d7
+Revision ID: f803a5ef4d8a
 Revises: 
-Create Date: 2025-06-15 03:44:06.607316
+Create Date: 2025-06-16 16:51:24.616026
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'b300f37577d7'
+revision: str = 'f803a5ef4d8a'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -26,7 +26,8 @@ def upgrade() -> None:
     sa.Column('timestamp', sa.BigInteger(), nullable=False),
     sa.Column('price', sa.Float(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('timestamp')
     )
     op.create_index(op.f('ix_price_points_id'), 'price_points', ['id'], unique=False)
     # ### end Alembic commands ###
