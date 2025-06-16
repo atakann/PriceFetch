@@ -40,6 +40,6 @@ class PriceRepository:
         return (
             self.db.query(models.CurrentPrice)
             .filter(models.CurrentPrice.timestamp.between(from_timestamp, to_timestamp))
-            .order_by(models.CurrentPrice.timestamp.desc())
+            .order_by(models.CurrentPrice.timestamp.asc())
             .all()
         )
