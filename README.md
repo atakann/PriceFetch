@@ -228,15 +228,14 @@ The project includes PgAdmin for database management. Access it at:
 ## Caching Strategy
 
 -   Current price is cached for 300 seconds (configurable via `CACHE_TTL`, coingecko public api is 1 min cache)
--   Cache invalidation on new price updates
--   Redis as primary cache with fallback to database
--   Cache keys include timestamps for versioning
+-   Cache-through pattern: check cache → fetch from API → store in DB → update cache
+-   Redis provides fast response times for repeated requests
+-   Makes user not waste CoinGecko API requests
+-   Simple TTL expiration (no active invalidation)
 
 ## Error Handling
 
 -   Rate limit handling for CoinGecko API
--   Network error retries
--   Database connection error handling
 -   Cache miss handling
 -   Input validation
 
