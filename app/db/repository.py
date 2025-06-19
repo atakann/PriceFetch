@@ -27,23 +27,13 @@ class PriceRepository:
         """Create multiple price points from range endpoint"""
         if not price_points:
             return []
-            
+
         now = datetime.now(timezone.utc)
-        
-        valid_points = []
-        for ts, price in price_points:
-            if ts is not None and price is not None:
-                try:
-                    valid_points.append({
-                        "timestamp": int(ts),
-                        "price": float(price),
-                        "created_at": now
-                    })
-                except (ValueError, TypeError):
-                    continue
-        
-        if not valid_points:
-            return []
+
+        valid_points = [
+            {"timestamp": ts, "price": price, "created_at": now}
+            for ts, price in price_points
+        ]
 
         try:
             stmt = (
@@ -56,11 +46,10 @@ class PriceRepository:
             self.db.commit()
         except Exception as e:
             self.db.rollback()
-            return []
+            raise
 
         return self.get_price_range(
-            min(ts for ts, _ in price_points), 
-            max(ts for ts, _ in price_points)
+            min(ts for ts, _ in price_points), max(ts for ts, _ in price_points)
         )
 
     def get_price_range(

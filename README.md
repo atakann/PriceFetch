@@ -92,8 +92,8 @@ GET /api/v1/price-history?from_timestamp={from}&to_timestamp={to}
 
 Query Parameters:
 
--   `from_timestamp`: Start time in milliseconds (required)
--   `to_timestamp`: End time in milliseconds (required)
+-   `from_timestamp`: Start time in seconds (required)
+-   `to_timestamp`: End time in seconds (required)
 
 1. 24-hour range:
 
@@ -111,6 +111,11 @@ Note: Timestamps are in Unix timestamp format (seconds since epoch). The example
 
 -   24-hour range: June 12, 2025 6:19:59 PM to June 13, 2025 6:19:59 PM
 -   5-day range: June 8, 2025 6:19:59 PM to June 13, 2025 6:19:59 PM
+
+**Important Notes:**
+- **Query parameters** use **seconds** (Unix timestamp format)
+- **Response timestamps** are in **milliseconds** for precision
+- Results are ordered by timestamp descending (newest first)
 
 Response:
 

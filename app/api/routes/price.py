@@ -28,7 +28,18 @@ async def get_current_price(db: Session = Depends(get_db)) -> CurrentPriceRespon
 async def get_price_history_range(
     from_timestamp: int, to_timestamp: int, db: Session = Depends(get_db)
 ) -> PriceHistoryResponse:
-    """Get Bitcoin price history for specific range"""
+    """
+    Get Bitcoin price history for specific range
+
+    **Important**: Query parameters use **seconds** (Unix timestamp).
+    **Note**: Responses return timestamps in **milliseconds** for precision.
+
+    **Parameters:**
+    - **from_timestamp**: Start time in seconds (Unix timestamp)
+    - **to_timestamp**: End time in seconds (Unix timestamp)
+
+    **Returns:** Price data with timestamps in milliseconds, ordered newest first.
+    """
     try:
         params = PriceHistoryRangeParams(
             from_timestamp=from_timestamp, to_timestamp=to_timestamp
